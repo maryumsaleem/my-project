@@ -69,9 +69,9 @@ const delete_project = (req, res) => {
   try {
     //Database Get Projects
     res.status(200).json({
-      status: "success",
+      status: "successs",
       data: {
-        project: "project",
+        id
       },
     });
   } catch (err) {
