@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-require("dotenv").config();
+require("dotenv").config({'./var/'});
 //const db = 'mongodb+srv://saad:saad8212@cluster0.irhxo3y.mongodb.net/chatbot'
 const db = process.env.DB_URL;
 mongoose.connect(db).then(() =>{
