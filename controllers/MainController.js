@@ -1,3 +1,4 @@
+const Project = require('../models/ProjectSchema');
 const get_project = (req, res, next) => {
   try {
     //Database Get Projects
@@ -14,14 +15,19 @@ const get_project = (req, res, next) => {
     });
   }
 };
-const add_project = async(req, res, next) => {
-  const data = req;
-  console.log(data) 
+const add_project = async(req, res, next) => { 
+  const data = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    address: req.body.address,
+  }   
   try {
-    //Database Get Projects
+    //Database POST Project
+    const project = await Project.create(data)
     res.status(201).json({
       status: "success",
-      data:  data
+      data:  project
     });
   } catch (err) {
     res.status(400).json({
