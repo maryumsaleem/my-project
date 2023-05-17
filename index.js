@@ -2,7 +2,7 @@ const express = require('express')
 const app = express();
 const routes = require('./routes/index')
 require('./dbConnection')
-require('dotenv').config();
+require('dotenv').config({path: "./vars/.env"});
 
 // Middlewares
 app.use(express.json());
