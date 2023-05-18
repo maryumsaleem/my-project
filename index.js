@@ -1,6 +1,6 @@
+const routes = require('./routes/index')
 const express = require('express')
 const app = express();
-const routes = require('./routes/index')
 require('./dbConnection')
 require('dotenv').config({path: "./var/.env"});
 
