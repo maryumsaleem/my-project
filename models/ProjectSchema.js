@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 const ProjectScehma = mongoose.Schema({
     name: String,
     email: String,
-    phone: String,
+    phone: {
+        type: String,
+        select: false
+    },
     address: String
 });
 
