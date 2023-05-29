@@ -10,7 +10,7 @@ const signup = async (req, res, next) => {
   //hashed password
   //user creation
   //token generate
-  const { name, email, password } = req.body;
+  const { name, email, password,passwordConfirm } = req.body;
   try {
     //existing user check
     const existingUser = await User.findOne({ email: email });
@@ -25,6 +25,7 @@ const signup = async (req, res, next) => {
     const result = await User.create({
       email: email,
       password: hashedPassword,
+      passwordConfirm:hashedPassword,
       name: name
     });
  //token generate

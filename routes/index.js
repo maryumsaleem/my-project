@@ -12,7 +12,7 @@ router.get("/:id",verifyToken, single_project);
 router.patch("/:id", update_project);
 router.delete("/:id", delete_project);
 router.post('/login',checkLogin);
-router.post('/signup',signup);
+router.post('/signup',signup)
 
 
 module.exports = router;
