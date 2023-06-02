@@ -1,9 +1,10 @@
 const Project = require('../models/ProjectSchema');
 const cloudinary = require("../utils/cloudinary");
 const get_project = async(req, res, next) => {
-   //Database Get Projects
-   const projects = await Project.find().select("-password");
+   
   try {
+    //Database Get Projects
+   const projects = await Project.find().select("-password");
     //Database Get Projects
     res.status(200).json({
       status: "success",
