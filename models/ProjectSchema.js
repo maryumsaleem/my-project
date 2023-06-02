@@ -6,6 +6,12 @@ const ProjectScehma = mongoose.Schema({
         type: String,
         select: false
     },
+    image: {
+        type: String,
+    },
+    image_id: {
+        type: String,
+    },
     address: String
 });
 

@@ -25,6 +25,10 @@ const UserScehma = mongoose.Schema({
         unique: true,
         lowercase: true,
         validate: [validator.isEmail, "please provide an valid email"]
+    },
+    image:{
+        data:Buffer,
+        dataType: String
     }
 });
 
