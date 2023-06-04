@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { get_project, add_project, single_project, update_project, delete_project } = require('../controllers/MainController')
-const {login,signup,protect, restrictTo}=require('../controllers/AuthController');
+const {login,signup,protect, restrictTo,forgotPassword, resetPassword}=require('../controllers/AuthController');
 //const {verifyToken}=require('../middleware/verifyToken');
 const upload = require("../middleware/multerMiddleware");
 
@@ -12,6 +12,8 @@ router.patch("/:id", update_project);
 router.delete("/:id", delete_project);
 router.post('/login',login);
 router.post('/signup',signup);
+router.post('/forgotPassword',forgotPassword);
+router.post('/resetPassword',resetPassword);
 
 
 module.exports = router;
