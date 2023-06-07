@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 const login_token = "admin_token";
 const bcrypt = require("bcryptjs");
 const util = require("util");
-
+const reset_key = "reset_token";
+const { transporter } = require("../utils/nodeMailer");
 /*** Sign Up new user ***/
 const signup = async (req, res, next) => {
   try {
@@ -34,7 +35,6 @@ const login = async (req, res, next) => {
       });
     }
     let user = await User.findOne({ email: req.body.email });
-
     if (!user) {
       return res.status(400).json({
         status: "failed!",
@@ -51,6 +51,12 @@ const login = async (req, res, next) => {
     let token = jwt.sign({ id: user._id }, login_token);
     console.log(token);
     // res.cookie('jwt_review', token, cookieOptions)
+    await transporter.sendMail({
+      from: "saadshabbir@leilanitech.com",
+      to: email,
+      subject: "Login",
+      text: "You are successfully logged in!",
+    });
     res.status(200).json({
       status: "success",
       token,
@@ -105,27 +111,55 @@ const restrictTo = (...roles) => {
   };
 };
 
-const forgotPassword = async (req, res, next) => {
-  try {
-    //1)Get user based om posted email
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return next(new AppError('There is no user with email address',404));
-    }
-    //2) Generate the random reset token
-    const resetToken = user.createPasswordResetToken();
-    await user.save();
-
-    //3) send it to users email
-  } catch (err) {
-    res.status(400).json({
-      status: "failed!",
-      message: err.message,
-    });
+/*** Reset Password***/ 
+async function resetPassword(req, res) {
+  let user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    res.status(404).json({ message: 'User not found with this email' });
+    return;
   }
-};
+  
+  jwt.sign({ user }, reset_key, { expiresIn: "5h" }, (err, token) => {
+    if (err) {
+      res.status(500).json({ message: 'Error generating token' });
+      return;
+    }
 
-const resetPassword = (req, res, next) => {};
+    const resetLink = `${process.env.RESET}?token=${token}`;
+    transporter.sendMail({
+      from: "maryumsaleem51@gmail.com",
+      to: req.body.email,
+      subject: "Reset Password",
+      text: `Reset your password using the following link: ${resetLink}`
+    })
+    .then((response) => {
+      console.log(token, user, response);
+      res.cookie("reset-token", token, { maxAge: 600000 }).send({ message: "Reset link sent to your email!" });
+    })
+    .catch((error) => {
+      res.status(500).json({ message: 'Error sending email' });
+    });
+  });
+}
+
+
+/*** New Password ***/ 
+async function newPassword(req, res) {
+  if(!req.body.password) {
+    res.send({ message: "Password is Required!"});
+    return true;
+  }
+  try {
+    let email = req.body.email;
+    let encrypted = await bcrypt.hash(req.body.password, 12);
+    console.log(encrypted)
+    let update = await User.findOneAndUpdate({ email: email }, {$set: { password: encrypted }},{new: true});
+    // res.clearCookie("reset-token")
+    res.json({ message: "Password Updated Successfully! " + update});
+  } catch (err) {
+    res.status(400).json({ message: err.message});
+  }
+}
 
 /*** Export Functions ***/
 module.exports = {
@@ -133,6 +167,6 @@ module.exports = {
   signup,
   protect,
   restrictTo,
-  forgotPassword,
   resetPassword,
+  newPassword
 };

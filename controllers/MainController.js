@@ -18,6 +18,9 @@ const get_project = async(req, res, next) => {
   }
 };
 
+// const catchAsync = fn =>{
+//   fn(req,res,next).catch(err =>next (err));
+// }
 const add_project = async (req, res, next) => { 
   try {
     if(!req.file) {
