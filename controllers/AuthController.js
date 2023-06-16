@@ -6,13 +6,29 @@ const bcrypt = require("bcryptjs");
 const util = require("util");
 const reset_key = "reset_token";
 const { transporter } = require("../utils/nodeMailer");
+const cookieOptions = {
+  httpOnly: true,  //This option sets the "HttpOnly" flag for the cookie, which ensures that the cookie is only accessible through HTTP(S) requests and cannot be accessed or modified by client-side JavaScript. This is a security measure to protect the cookie from cross-site scripting (XSS) attacks.
+  expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), //calculates the expiration time to be 90 days in milliseconds from the current time.
+};
 /*** Sign Up new user ***/
 const signup = async (req, res, next) => {
   try {
     let newUser = await new User(req.body);
     newUser = await newUser.save();
     let token = jwt.sign({ id: newUser._id }, login_token);
-    // res.cookie('jwt_review', token, cookieOptions)
+    /*
+    The res.cookie function is provided by the Express framework,
+     and it allows you to set a cookie in the response. It takes three parameters:
+     name: The name of the cookie.
+     value: The value of the cookie.
+     options (optional): Additional options to configure the cookie.
+
+    In the code snippet, res.cookie('jwt_review', token, cookieOptions) sets a cookie
+    named 'jwt_review' with the value of the token variable.
+    The cookieOptions object is provided
+    as the third parameter and contains additional configuration options for the cookie.
+    */
+    res.cookie("jwt_review", token, cookieOptions);
     res.status(200).json({
       status: "success",
       data: {
@@ -50,7 +66,7 @@ const login = async (req, res, next) => {
     }
     let token = jwt.sign({ id: user._id }, login_token);
     console.log(token);
-    // res.cookie('jwt_review', token, cookieOptions)
+    res.cookie("jwt_review", token, cookieOptions);
     await transporter.sendMail({
       from: "saadshabbir@leilanitech.com",
       to: email,
@@ -111,53 +127,59 @@ const restrictTo = (...roles) => {
   };
 };
 
-/*** Reset Password***/ 
+/*** Reset Password***/
 async function resetPassword(req, res) {
   let user = await User.findOne({ email: req.body.email });
   if (!user) {
-    res.status(404).json({ message: 'User not found with this email' });
+    res.status(404).json({ message: "User not found with this email" });
     return;
   }
-  
+
   jwt.sign({ user }, reset_key, { expiresIn: "5h" }, (err, token) => {
     if (err) {
-      res.status(500).json({ message: 'Error generating token' });
+      res.status(500).json({ message: "Error generating token" });
       return;
     }
 
     const resetLink = `${process.env.RESET}?token=${token}`;
-    transporter.sendMail({
-      from: "maryumsaleem51@gmail.com",
-      to: req.body.email,
-      subject: "Reset Password",
-      text: `Reset your password using the following link: ${resetLink}`
-    })
-    .then((response) => {
-      console.log(token, user, response);
-      res.cookie("reset-token", token, { maxAge: 600000 }).send({ message: "Reset link sent to your email!" });
-    })
-    .catch((error) => {
-      res.status(500).json({ message: 'Error sending email' });
-    });
+    transporter
+      .sendMail({
+        from: "maryumsaleem51@gmail.com",
+        to: req.body.email,
+        subject: "Reset Password",
+        text: `Reset your password using the following link: ${resetLink}`,
+      })
+      .then((response) => {
+        console.log(token, user, response);
+        res
+          .cookie("reset-token", token, { maxAge: 600000 })
+          .send({ message: "Reset link sent to your email!" });
+      })
+      .catch((error) => {
+        res.status(500).json({ message: "Error sending email" });
+      });
   });
 }
 
-
-/*** New Password ***/ 
+/*** New Password ***/
 async function newPassword(req, res) {
-  if(!req.body.password) {
-    res.send({ message: "Password is Required!"});
+  if (!req.body.password) {
+    res.send({ message: "Password is Required!" });
     return true;
   }
   try {
     let email = req.body.email;
     let encrypted = await bcrypt.hash(req.body.password, 12);
-    console.log(encrypted)
-    let update = await User.findOneAndUpdate({ email: email }, {$set: { password: encrypted }},{new: true});
-    // res.clearCookie("reset-token")
-    res.json({ message: "Password Updated Successfully! " + update});
+    console.log(encrypted);
+    let update = await User.findOneAndUpdate(
+      { email: email },
+      { $set: { password: encrypted } },
+      { new: true }
+    );
+     res.clearCookie("reset-token")
+    res.json({ message: "Password Updated Successfully! " + update });
   } catch (err) {
-    res.status(400).json({ message: err.message});
+    res.status(400).json({ message: err.message });
   }
 }
 
@@ -168,5 +190,5 @@ module.exports = {
   protect,
   restrictTo,
   resetPassword,
-  newPassword
+  newPassword,
 };

@@ -1,10 +1,56 @@
 const Project = require('../models/ProjectSchema');
 const cloudinary = require("../utils/cloudinary");
+
 const get_project = async(req, res, next) => {
    
   try {
+    let queryObj = { ...req.query };
+      let excludedFields = ["page", "limit", "sort", "fields"];
+      excludedFields.forEach((field) => delete queryObj[field]);
+
+      // Advance Filtering
+      let queryStr = JSON.stringify(queryObj);
+      queryStr = queryStr.replace(
+        /\b(gte|gt|lte|lt)\b/g,
+        (match) => `$${match}`
+      );
+      console.log(JSON.parse(queryStr));
+      let query = Project.find(JSON.parse(queryStr)).select("-password");
+
+       // Sorting
+       if (req.query.sort) {
+        const sortBy = req.query.sort.split(",").join(" ");
+        query = query.sort(sortBy);
+      } else {
+        query = query.sort("-createdAt");
+      }
+
+      //Fields Limiting
+
+      if (req.query.fields) {
+        const fields = req.query.fields.split(",").join(" ");
+        query = query.select(fields);
+      } else {
+        query = query.select("-__v");
+      }
+
+      //Pagination
+      const page = req.query.page * 1 || 1;
+      const limit = req.query.limit * 1 || 10;
+      const skip = (page - 1) * limit;
+
+      query = query.skip(skip).limit(limit);
+
+      if (req.query.page) {
+        const data = await Project.countDocuments();
+        if (skip >= data) throw new Error("This page does not exist");
+      }
+      // Execute the Query
+      const projects = await query;
+
+      //
     //Database Get Projects
-   const projects = await Project.find().select("-password");
+   //const projects = await Project.find().select("-password");
     //Database Get Projects
     res.status(200).json({
       status: "success",

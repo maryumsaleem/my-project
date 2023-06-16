@@ -15,17 +15,48 @@ const {
   resetPassword,
   newPassword,
 } = require("../controllers/AuthController");
-//const {verifyToken}=require('../middleware/verifyToken');
+
+const {
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+} = require("../controllers/productsController");
+const {
+  input_category,
+  get_category,
+  // getCategoryById,
+  // updateCategory,
+  // deleteCategory,
+} = require("../controllers/categoryController");
 const upload = require("../middleware/multerMiddleware");
 
-router.get("/", protect, restrictTo("admin", "moderator", "user"), get_project);
+router.get("/", get_project);
 router.post("/", upload.single("image"), add_project);
 router.get("/:id", single_project);
 router.patch("/:id", update_project);
 router.delete("/:id", delete_project);
 router.post("/login", login);
 router.post("/signup", signup);
-router.post("/resetPassword", resetPassword);
-router.post("/newPassword", newPassword);
+router.post("/reset-Password", resetPassword);
+router.post("/new-Password", newPassword);
 
+// /***  products route   ****/
+router.post("/products", createProduct);
+router.get("/products", getAllProducts);
+router.get("/:id", getProductById);
+router.patch("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
+
+// /***  category route   ****/
+router.post("/category", input_category);
+router.get("/category", get_category);
+// router.get("/:id", getCategoryById);
+// router.patch("/:id", updateCategory);
+// router.delete("/:id", deleteCategory);
+
+router.get("/",(req,res)=>{
+  res.send("abc")
+})
 module.exports = router;
